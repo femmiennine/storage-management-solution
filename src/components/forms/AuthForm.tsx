@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createAccount, loginUser } from '@/lib/actions/user.actions';
+import { createAccount, loginUser, getCurrentUser } from '@/lib/actions/user.actions';
 
 const authFormSchema = (type: 'sign-in' | 'sign-up') => {
   return z.object({
@@ -50,6 +50,21 @@ export function AuthForm({ type }: AuthFormProps) {
       ...(type === 'sign-up' && { fullName: '' }),
     },
   });
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          router.push('/dashboard');
+        }
+      } catch (error) {
+        // User not logged in, continue
+      }
+    };
+    checkUser();
+  }, [router]);
 
   async function onSubmit(data: FormData) {
     setIsLoading(true);

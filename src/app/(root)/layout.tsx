@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FolderTree } from '@/components/FolderTree';
 import { logoutUser } from '@/lib/actions/user.actions';
 
 const navItems = [
@@ -81,7 +82,7 @@ export default function RootLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 pb-4">
+          <nav className="flex-1 px-4 pb-4 overflow-y-auto">
             <ul className="space-y-2">
               {navItems.map((item) => (
                 <li key={item.href}>
@@ -100,6 +101,16 @@ export default function RootLayout({
                 </li>
               ))}
             </ul>
+
+            {/* Folder Tree */}
+            {pathname.startsWith('/files') && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Folders
+                </h3>
+                <FolderTree />
+              </div>
+            )}
           </nav>
 
           {/* Logout */}

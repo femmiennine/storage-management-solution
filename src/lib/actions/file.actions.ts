@@ -1,9 +1,11 @@
 import { storage, databases, ID } from '@/lib/appwrite';
 import { appwriteConfig } from '@/lib/appwrite-config';
 import { getCurrentUser } from './user.actions';
+import { Query } from 'appwrite';
 
 export interface UploadFileParams {
   file: File;
+  folderId?: string | null;
   onProgress?: (progress: number) => void;
 }
 
@@ -15,10 +17,11 @@ export interface FileDocument {
   fileType: string;
   fileUrl: string;
   bucketFileId: string;
+  folderId: string | null;
   $createdAt: string;
 }
 
-export async function uploadFile({ file, onProgress }: UploadFileParams) {
+export async function uploadFile({ file, folderId = null, onProgress }: UploadFileParams) {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('User not authenticated');
@@ -52,6 +55,7 @@ export async function uploadFile({ file, onProgress }: UploadFileParams) {
         fileType: file.type,
         fileUrl: fileUrl.toString(),
         bucketFileId: uploadedFile.$id,
+        folderId: folderId,
       }
     );
 
@@ -62,23 +66,33 @@ export async function uploadFile({ file, onProgress }: UploadFileParams) {
   }
 }
 
-export async function getFiles(userId?: string) {
+export async function getFiles(folderId?: string | null) {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('User not authenticated');
 
+    const queries = [
+      Query.equal('userId', user.$id),
+    ];
+
+    // If folderId is provided, filter by it
+    // If folderId is null, get root files (no folder)
+    // If folderId is undefined, get all files
+    if (folderId !== undefined) {
+      if (folderId === null) {
+        queries.push(Query.isNull('folderId'));
+      } else {
+        queries.push(Query.equal('folderId', folderId));
+      }
+    }
+
     const files = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
-      []
+      queries
     );
 
-    // Filter files by userId
-    const userFiles = files.documents.filter(
-      (file: any) => file.userId === (userId || user.$id)
-    );
-
-    return userFiles as FileDocument[];
+    return files.documents as FileDocument[];
   } catch (error) {
     console.error('Get files error:', error);
     throw error;
@@ -113,6 +127,37 @@ export async function getFileDownloadUrl(bucketFileId: string) {
     return result.toString();
   } catch (error) {
     console.error('Get download URL error:', error);
+    throw error;
+  }
+}
+
+export async function moveFile(fileId: string, newFolderId: string | null) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('User not authenticated');
+
+    // Get the file to verify ownership
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId
+    );
+
+    if (file.userId !== user.$id) {
+      throw new Error('Unauthorized: You can only move your own files');
+    }
+
+    // Update the file's folder
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      { folderId: newFolderId }
+    );
+
+    return updatedFile as FileDocument;
+  } catch (error) {
+    console.error('Move file error:', error);
     throw error;
   }
 }

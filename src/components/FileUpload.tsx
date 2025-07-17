@@ -25,6 +25,7 @@ interface FileUploadProps {
   open: boolean;
   onClose: () => void;
   onUploadComplete?: () => void;
+  folderId?: string | null;
 }
 
 interface FilePreview {
@@ -40,7 +41,7 @@ const getFileIcon = (fileType: string) => {
   return File;
 };
 
-export function FileUpload({ open, onClose, onUploadComplete }: FileUploadProps) {
+export function FileUpload({ open, onClose, onUploadComplete, folderId }: FileUploadProps) {
   const router = useRouter();
   const [files, setFiles] = useState<FilePreview[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -90,6 +91,7 @@ export function FileUpload({ open, onClose, onUploadComplete }: FileUploadProps)
       try {
         await uploadFile({
           file,
+          folderId,
           onProgress: (progress) => {
             setUploadProgress(prev => ({
               ...prev,

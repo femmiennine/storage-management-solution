@@ -44,6 +44,17 @@ export async function createAccount({ email, password, fullName }: CreateUserPar
 
 export async function loginUser({ email, password }: LoginUserParams) {
   try {
+    // Check if there's already an active session
+    try {
+      const currentSession = await account.getSession('current');
+      if (currentSession) {
+        // Delete the existing session first
+        await account.deleteSession('current');
+      }
+    } catch (error) {
+      // No active session, continue with login
+    }
+    
     const session = await account.createEmailPasswordSession(email, password);
     return session;
   } catch (error) {
