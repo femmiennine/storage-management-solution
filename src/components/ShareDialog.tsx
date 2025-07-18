@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -82,9 +82,10 @@ export function ShareDialog({ open, onClose, file }: ShareDialogProps) {
   const loadExistingLinks = async () => {
     try {
       const links = await getShareLinks(file.$id);
-      setExistingLinks(links.filter(link => link.isActive));
+      setExistingLinks(links);
     } catch (error) {
       console.error('Error loading share links:', error);
+      setExistingLinks([]);
     }
   };
 
@@ -94,6 +95,11 @@ export function ShareDialog({ open, onClose, file }: ShareDialogProps) {
       const permissions = [];
       if (data.permissions.view) permissions.push('view');
       if (data.permissions.download) permissions.push('download');
+
+      // Ensure we have at least one permission
+      if (permissions.length === 0) {
+        throw new Error('At least one permission must be selected');
+      }
 
       const expiresIn = data.expiresIn === 'never' ? undefined : parseInt(data.expiresIn);
 
@@ -138,11 +144,11 @@ export function ShareDialog({ open, onClose, file }: ShareDialogProps) {
     }
   };
 
-  React.useEffect(() => {
-    if (open) {
+  useEffect(() => {
+    if (open && file?.$id) {
       loadExistingLinks();
     }
-  }, [open, file.$id]);
+  }, [open, file?.$id]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -352,7 +358,7 @@ export function ShareDialog({ open, onClose, file }: ShareDialogProps) {
                       </Button>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {link.views} views • {link.downloads} downloads
+                      Created {new Date(link.$createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 ))}

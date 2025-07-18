@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   validateShareAccess, 
-  trackShareActivity, 
   ShareLinkWithFile 
 } from '@/lib/actions/share.actions';
 import { getFileDownloadUrl } from '@/lib/actions/file.actions';
@@ -66,7 +65,7 @@ export default function SharePage() {
       
       // Track view
       if (link) {
-        await trackShareActivity(token, 'view');
+        // trackShareActivity was removed since we don't have views/downloads fields
       }
     } catch (error: any) {
       if (error.message === 'Password required') {
@@ -89,7 +88,7 @@ export default function SharePage() {
       if (link) {
         setShareLink(link);
         setRequiresPassword(false);
-        await trackShareActivity(token, 'view');
+        // trackShareActivity was removed since we don't have views/downloads fields
       }
     } catch (error: any) {
       setError(error.message || 'Invalid password');
@@ -99,11 +98,11 @@ export default function SharePage() {
   };
 
   const handleDownload = async () => {
-    if (!shareLink?.file || !shareLink.permissions.includes('download')) return;
+    if (!shareLink?.file) return;
 
     setDownloading(true);
     try {
-      await trackShareActivity(token, 'download');
+      // trackShareActivity was removed since we don't have views/downloads fields
       const downloadUrl = await getFileDownloadUrl(shareLink.file.bucketFileId);
       window.open(downloadUrl, '_blank');
     } catch (error) {
@@ -192,7 +191,8 @@ export default function SharePage() {
 
   const file = shareLink.file;
   const Icon = getFileIcon(file.fileType);
-  const canDownload = shareLink.permissions.includes('download');
+  // Since we don't store permissions, assume all share links allow download
+  const canDownload = true;
   const isImage = file.fileType.startsWith('image/');
 
   return (

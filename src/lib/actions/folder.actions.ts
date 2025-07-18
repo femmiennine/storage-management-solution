@@ -2,6 +2,7 @@ import { databases, ID } from '@/lib/appwrite';
 import { appwriteConfig } from '@/lib/appwrite-config';
 import { getCurrentUser } from './user.actions';
 import { Query } from 'appwrite';
+import { logActivity } from './activity.actions';
 
 export interface FolderDocument {
   $id: string;
@@ -48,6 +49,20 @@ export async function createFolder({ name, parentId = null, color, icon }: Creat
         icon,
       }
     );
+
+    // Log activity
+    await logActivity({
+      action: 'folder_create',
+      resourceType: 'folder',
+      resourceId: folder.$id,
+      resourceName: name,
+      metadata: {
+        parentId,
+        path,
+        color,
+        icon
+      }
+    });
 
     return folder as FolderDocument;
   } catch (error) {
@@ -192,6 +207,19 @@ export async function deleteFolder(folderId: string, deleteContents: boolean = f
       appwriteConfig.foldersCollectionId,
       folderId
     );
+
+    // Log activity
+    await logActivity({
+      action: 'folder_delete',
+      resourceType: 'folder',
+      resourceId: folderId,
+      resourceName: folder.name,
+      metadata: {
+        deleteContents,
+        subfolderCount: subfolders.length,
+        fileCount: files.length
+      }
+    });
 
     return { success: true };
   } catch (error) {

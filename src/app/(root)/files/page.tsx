@@ -14,7 +14,9 @@ import {
   Upload,
   FolderPlus,
   Share2,
-  FolderOpen
+  FolderOpen,
+  Hash,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +27,9 @@ import { Breadcrumb } from '@/components/Breadcrumb';
 import { FolderCard } from '@/components/FolderCard';
 import { CreateFolderDialog } from '@/components/CreateFolderDialog';
 import { ShareDialog } from '@/components/ShareDialog';
+import { TagsDialog } from '@/components/TagsDialog';
+import { UserShareDialog } from '@/components/UserShareDialog';
+import { RenameFolderDialog } from '@/components/RenameFolderDialog';
 import { FilePreview } from '@/components/FilePreview';
 import { BulkMoveDialog } from '@/components/BulkMoveDialog';
 import { getCurrentUser } from '@/lib/actions/user.actions';
@@ -61,6 +66,12 @@ export default function FilesPage() {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [fileToShare, setFileToShare] = useState<FileDocument | null>(null);
+  const [showTagsDialog, setShowTagsDialog] = useState(false);
+  const [fileToTag, setFileToTag] = useState<FileDocument | null>(null);
+  const [showUserShareDialog, setShowUserShareDialog] = useState(false);
+  const [fileToUserShare, setFileToUserShare] = useState<FileDocument | null>(null);
+  const [showRenameFolderDialog, setShowRenameFolderDialog] = useState(false);
+  const [folderToRename, setFolderToRename] = useState<FolderDocument | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [fileToPreview, setFileToPreview] = useState<FileDocument | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -355,6 +366,10 @@ export default function FilesPage() {
                 key={folder.$id}
                 folder={folder}
                 onRefresh={fetchData}
+                onRename={(folder) => {
+                  setFolderToRename(folder);
+                  setShowRenameFolderDialog(true);
+                }}
               />
             ))}
             {filteredFiles.map((file) => {
@@ -400,10 +415,45 @@ export default function FilesPage() {
                     <h3 className="font-medium truncate mb-1" title={file.fileName}>
                       {file.fileName}
                     </h3>
-                    <p className="text-sm text-muted-foreground mb-3">
+                    <p className="text-sm text-muted-foreground mb-2">
                       {formatFileSize(file.fileSize)} • {new Date(file.$createdAt).toLocaleDateString()}
                     </p>
+                    {file.tags && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {file.tags.split(',').filter(Boolean).map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-secondary text-secondary-foreground"
+                          >
+                            <Hash className="h-3 w-3" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setFileToTag(file);
+                          setShowTagsDialog(true);
+                        }}
+                        title="Tags"
+                      >
+                        <Hash className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setFileToUserShare(file);
+                          setShowUserShareDialog(true);
+                        }}
+                        title="Share with User"
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -411,7 +461,7 @@ export default function FilesPage() {
                           setFileToShare(file);
                           setShowShareDialog(true);
                         }}
-                        title="Share"
+                        title="Share Link"
                       >
                         <Share2 className="h-4 w-4" />
                       </Button>
@@ -472,6 +522,44 @@ export default function FilesPage() {
             setFileToShare(null);
           }}
           file={fileToShare}
+        />
+      )}
+
+      {/* Tags Dialog */}
+      {fileToTag && (
+        <TagsDialog
+          open={showTagsDialog}
+          onClose={() => {
+            setShowTagsDialog(false);
+            setFileToTag(null);
+          }}
+          file={fileToTag}
+          onSuccess={fetchData}
+        />
+      )}
+
+      {/* User Share Dialog */}
+      {fileToUserShare && (
+        <UserShareDialog
+          open={showUserShareDialog}
+          onClose={() => {
+            setShowUserShareDialog(false);
+            setFileToUserShare(null);
+          }}
+          file={fileToUserShare}
+        />
+      )}
+
+      {/* Rename Folder Dialog */}
+      {folderToRename && (
+        <RenameFolderDialog
+          open={showRenameFolderDialog}
+          onClose={() => {
+            setShowRenameFolderDialog(false);
+            setFolderToRename(null);
+          }}
+          folder={folderToRename}
+          onSuccess={fetchData}
         />
       )}
 

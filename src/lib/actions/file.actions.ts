@@ -2,6 +2,7 @@ import { storage, databases, ID } from '@/lib/appwrite';
 import { appwriteConfig } from '@/lib/appwrite-config';
 import { getCurrentUser } from './user.actions';
 import { Query } from 'appwrite';
+import { logActivity } from './activity.actions';
 
 export interface UploadFileParams {
   file: File;
@@ -18,6 +19,7 @@ export interface FileDocument {
   fileUrl: string;
   bucketFileId: string;
   folderId: string | null;
+  tags?: string; // Comma-separated tags
   $createdAt: string;
 }
 
@@ -59,9 +61,40 @@ export async function uploadFile({ file, folderId = null, onProgress }: UploadFi
       }
     );
 
+    // Log activity
+    await logActivity({
+      action: 'file_upload',
+      resourceType: 'file',
+      resourceId: fileDocument.$id,
+      resourceName: file.name,
+      metadata: {
+        fileSize: file.size,
+        fileType: file.type,
+        folderId: folderId
+      }
+    });
+
     return fileDocument;
   } catch (error) {
     console.error('File upload error:', error);
+    throw error;
+  }
+}
+
+export async function getFile(fileId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId
+    );
+
+    return file as FileDocument;
+  } catch (error) {
+    console.error('Get file error:', error);
     throw error;
   }
 }
@@ -101,6 +134,13 @@ export async function getFiles(folderId?: string | null) {
 
 export async function deleteFile(fileId: string, bucketFileId: string) {
   try {
+    // Get file info before deletion for activity log
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId
+    ) as FileDocument;
+
     // Delete from storage
     await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
 
@@ -110,6 +150,18 @@ export async function deleteFile(fileId: string, bucketFileId: string) {
       appwriteConfig.filesCollectionId,
       fileId
     );
+
+    // Log activity
+    await logActivity({
+      action: 'file_delete',
+      resourceType: 'file',
+      resourceId: fileId,
+      resourceName: file.fileName,
+      metadata: {
+        fileSize: file.fileSize,
+        fileType: file.fileType
+      }
+    });
 
     return { success: true };
   } catch (error) {

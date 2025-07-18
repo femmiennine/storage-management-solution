@@ -11,7 +11,10 @@ import {
   LogOut,
   Menu,
   X,
-  Search
+  Search,
+  Activity,
+  Share2,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +24,10 @@ import { logoutUser } from '@/lib/actions/user.actions';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/files', label: 'My Files', icon: FolderOpen },
+  { href: '/shared-with-me', label: 'Shared with Me', icon: Users },
+  { href: '/search', label: 'Search', icon: Search },
+  { href: '/shares', label: 'Share Links', icon: Share2 },
+  { href: '/activity', label: 'Activity', icon: Activity },
   { href: '/upload', label: 'Upload', icon: Upload },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -77,6 +84,12 @@ export default function RootLayout({
               <Input
                 placeholder="Search files..."
                 className="pl-10"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value) {
+                    router.push(`/search?q=${encodeURIComponent(e.currentTarget.value)}`);
+                    e.currentTarget.value = '';
+                  }
+                }}
               />
             </div>
           </div>

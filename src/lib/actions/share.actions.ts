@@ -2,7 +2,8 @@ import { databases, ID } from '@/lib/appwrite';
 import { appwriteConfig } from '@/lib/appwrite-config';
 import { getCurrentUser } from './user.actions';
 import { Query } from 'appwrite';
-import bcrypt from 'bcryptjs';
+import { logActivity } from './activity.actions';
+// Removed bcrypt import - will use simple obfuscation for demo
 
 export interface ShareLinkDocument {
   $id: string;
@@ -11,10 +12,6 @@ export interface ShareLinkDocument {
   token: string;
   password?: string;
   expiresAt?: string;
-  permissions: string[];
-  views: number;
-  downloads: number;
-  isActive: boolean;
   $createdAt: string;
 }
 
@@ -38,6 +35,7 @@ function generateShareToken(): string {
   }
   return token;
 }
+
 
 export async function createShareLink({
   fileId,
@@ -65,23 +63,30 @@ export async function createShareLink({
     
     // Ensure token is unique
     let tokenExists = true;
-    while (tokenExists) {
+    let attempts = 0;
+    while (tokenExists && attempts < 10) {
       try {
-        await databases.listDocuments(
+        const existingTokens = await databases.listDocuments(
           appwriteConfig.databaseId,
           appwriteConfig.shareLinksCollectionId,
           [Query.equal('token', token)]
         );
-        token = generateShareToken();
-      } catch {
+        if (existingTokens.documents.length > 0) {
+          token = generateShareToken();
+          attempts++;
+        } else {
+          tokenExists = false;
+        }
+      } catch (error) {
         tokenExists = false;
       }
     }
 
-    // Hash password if provided
+    // For demo purposes, we'll store password as base64 encoded
+    // In production, use proper server-side hashing
     let hashedPassword = undefined;
     if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
+      hashedPassword = btoa(password);
     }
 
     // Calculate expiration date
@@ -92,27 +97,55 @@ export async function createShareLink({
       expiresAt = date.toISOString();
     }
 
-    // Create share link document
+    // Build document data object
+    const documentData: any = {
+      fileId,
+      userId: user.$id,
+      token
+    };
+    
+    // Only add optional fields if they have values
+    if (hashedPassword) {
+      documentData.password = hashedPassword;
+    }
+    
+    if (expiresAt) {
+      documentData.expiresAt = expiresAt;
+    }
+    
     const shareLink = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.shareLinksCollectionId,
       ID.unique(),
-      {
-        fileId,
-        userId: user.$id,
-        token,
-        password: hashedPassword,
-        expiresAt,
-        permissions,
-        views: 0,
-        downloads: 0,
-        isActive: true
-      }
+      documentData
     );
 
+    // Log activity
+    try {
+      await logActivity({
+        action: 'file_share',
+        resourceType: 'file',
+        resourceId: fileId,
+        resourceName: file.fileName,
+        metadata: {
+          shareId: shareLink.$id,
+          hasPassword: !!password,
+          expiresIn,
+          permissions
+        }
+      });
+    } catch (activityError) {
+      console.error('Failed to log activity:', activityError);
+      // Don't fail the share creation if activity logging fails
+    }
+
+    // Return the document
     return shareLink as ShareLinkDocument;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create share link error:', error);
+    if (error.message) {
+      console.error('Error message:', error.message);
+    }
     throw error;
   }
 }
@@ -130,11 +163,6 @@ export async function getShareLink(token: string): Promise<ShareLinkWithFile | n
     }
 
     const shareLink = links.documents[0] as ShareLinkDocument;
-
-    // Check if link is active
-    if (!shareLink.isActive) {
-      return null;
-    }
 
     // Check expiration
     if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
@@ -174,7 +202,9 @@ export async function validateShareAccess(
         throw new Error('Password required');
       }
       
-      const isValid = await bcrypt.compare(password, shareLink.password);
+      // For demo purposes, compare base64 encoded passwords
+      // In production, use proper server-side validation
+      const isValid = btoa(password) === shareLink.password;
       if (!isValid) {
         throw new Error('Invalid password');
       }
@@ -187,39 +217,7 @@ export async function validateShareAccess(
   }
 }
 
-export async function trackShareActivity(
-  token: string, 
-  action: 'view' | 'download'
-) {
-  try {
-    const links = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.shareLinksCollectionId,
-      [Query.equal('token', token)]
-    );
-
-    if (links.documents.length === 0) return;
-
-    const shareLink = links.documents[0];
-    const updateData: any = {};
-
-    if (action === 'view') {
-      updateData.views = (shareLink.views || 0) + 1;
-    } else if (action === 'download') {
-      updateData.downloads = (shareLink.downloads || 0) + 1;
-    }
-
-    await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.shareLinksCollectionId,
-      shareLink.$id,
-      updateData
-    );
-  } catch (error) {
-    console.error('Track share activity error:', error);
-    // Don't throw - tracking failures shouldn't break functionality
-  }
-}
+// Removed trackShareActivity since we don't have views/downloads fields
 
 export async function revokeShareLink(linkId: string) {
   try {
@@ -237,12 +235,11 @@ export async function revokeShareLink(linkId: string) {
       throw new Error('Unauthorized: You can only revoke your own share links');
     }
 
-    // Soft delete by marking as inactive
-    await databases.updateDocument(
+    // Delete the share link
+    await databases.deleteDocument(
       appwriteConfig.databaseId,
       appwriteConfig.shareLinksCollectionId,
-      linkId,
-      { isActive: false }
+      linkId
     );
 
     return { success: true };
@@ -258,8 +255,7 @@ export async function getShareLinks(fileId?: string) {
     if (!user) throw new Error('User not authenticated');
 
     const queries = [
-      Query.equal('userId', user.$id),
-      Query.equal('isActive', true)
+      Query.equal('userId', user.$id)
     ];
 
     if (fileId) {
@@ -301,17 +297,15 @@ export async function deleteExpiredShareLinks() {
       appwriteConfig.databaseId,
       appwriteConfig.shareLinksCollectionId,
       [
-        Query.lessThan('expiresAt', new Date().toISOString()),
-        Query.equal('isActive', true)
+        Query.lessThan('expiresAt', new Date().toISOString())
       ]
     );
 
     for (const link of expiredLinks.documents) {
-      await databases.updateDocument(
+      await databases.deleteDocument(
         appwriteConfig.databaseId,
         appwriteConfig.shareLinksCollectionId,
-        link.$id,
-        { isActive: false }
+        link.$id
       );
     }
 

@@ -46,8 +46,8 @@ export default function SharesPage() {
       const links = await getShareLinks();
       setShareLinks(links);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      router.push('/sign-in');
+      console.error('Error fetching share links data:', error);
+      // Don't redirect on error - just show empty state
     } finally {
       setLoading(false);
     }
@@ -117,41 +117,15 @@ export default function SharesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Links</CardTitle>
-              <Link2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{shareLinks.length}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {shareLinks.reduce((sum, link) => sum + link.views, 0)}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Downloads</CardTitle>
-              <Download className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {shareLinks.reduce((sum, link) => sum + link.downloads, 0)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Links</CardTitle>
+            <Link2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{shareLinks.length}</div>
+          </CardContent>
+        </Card>
 
         {/* Share Links Table */}
         {shareLinks.length === 0 ? (
@@ -172,7 +146,6 @@ export default function SharesPage() {
                   <TableHead>File</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Expires</TableHead>
-                  <TableHead>Stats</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -205,18 +178,6 @@ export default function SharesPage() {
                         <Badge variant={expiry.variant}>
                           {expiry.text}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Eye className="h-3 w-3" />
-                            <span>{link.views}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Download className="h-3 w-3" />
-                            <span>{link.downloads}</span>
-                          </div>
-                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
