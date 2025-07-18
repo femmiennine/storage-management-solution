@@ -158,7 +158,7 @@ export default function SharedWithMePage() {
                     
                     {/* Permissions badges */}
                     <div className="flex gap-2 mb-3">
-                      {permissions.map((perm) => (
+                      {permissions.map((perm: string) => (
                         <Badge key={perm} variant="secondary" className="text-xs">
                           {perm === 'view' ? <Eye className="h-3 w-3 mr-1" /> : <Download className="h-3 w-3 mr-1" />}
                           {perm}

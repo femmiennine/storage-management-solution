@@ -75,7 +75,7 @@ export function AuthForm({ type }: AuthFormProps) {
         await createAccount({
           email: data.email,
           password: data.password,
-          fullName: data.fullName,
+          fullName: data.fullName as string,
         });
       } else {
         await loginUser({
@@ -115,7 +115,7 @@ export function AuthForm({ type }: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="John Doe" {...field} value={field.value as string} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

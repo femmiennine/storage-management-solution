@@ -64,7 +64,7 @@ export async function createFolder({ name, parentId = null, color, icon }: Creat
       }
     });
 
-    return folder as FolderDocument;
+    return folder as unknown as FolderDocument;
   } catch (error) {
     console.error('Create folder error:', error);
     throw error;
@@ -83,7 +83,7 @@ export async function getFolders(parentId: string | null = null, recursive: bool
         appwriteConfig.foldersCollectionId,
         [Query.equal('userId', user.$id)]
       );
-      return folders.documents as FolderDocument[];
+      return folders.documents as unknown as FolderDocument[];
     }
 
     const queries = [
@@ -102,7 +102,7 @@ export async function getFolders(parentId: string | null = null, recursive: bool
       queries
     );
 
-    return folders.documents as FolderDocument[];
+    return folders.documents as unknown as FolderDocument[];
   } catch (error) {
     console.error('Get folders error:', error);
     throw error;
@@ -117,7 +117,7 @@ export async function getFolder(folderId: string) {
       folderId
     );
 
-    return folder as FolderDocument;
+    return folder as unknown as FolderDocument;
   } catch (error) {
     console.error('Get folder error:', error);
     return null;
@@ -164,7 +164,7 @@ export async function renameFolder(folderId: string, newName: string) {
     // Update paths of all subfolders
     await updateSubfolderPaths(folderId);
 
-    return updatedFolder as FolderDocument;
+    return updatedFolder as unknown as FolderDocument;
   } catch (error) {
     console.error('Rename folder error:', error);
     throw error;
@@ -267,7 +267,7 @@ export async function moveFolder(folderId: string, newParentId: string | null) {
     // Update paths of all subfolders
     await updateSubfolderPaths(folderId);
 
-    return updatedFolder as FolderDocument;
+    return updatedFolder as unknown as FolderDocument;
   } catch (error) {
     console.error('Move folder error:', error);
     throw error;

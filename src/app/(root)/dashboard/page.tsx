@@ -35,7 +35,12 @@ export default function DashboardPage() {
       setUser(currentUser);
       
       const userFiles = await getFiles();
-      setFiles(userFiles);
+      // Handle both response types (for backward compatibility)
+      if (Array.isArray(userFiles)) {
+        setFiles(userFiles);
+      } else {
+        setFiles(userFiles.files);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       router.push('/sign-in');

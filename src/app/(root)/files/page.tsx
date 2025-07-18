@@ -33,8 +33,9 @@ import { RenameFolderDialog } from '@/components/RenameFolderDialog';
 import { FilePreview } from '@/components/FilePreview';
 import { BulkMoveDialog } from '@/components/BulkMoveDialog';
 import { getCurrentUser } from '@/lib/actions/user.actions';
-import { getFiles, deleteFile, getFileDownloadUrl, FileDocument } from '@/lib/actions/file.actions';
+import { getFiles, deleteFile, getFileDownloadUrl, FileDocument, GetFilesResponse } from '@/lib/actions/file.actions';
 import { getFolders, FolderDocument } from '@/lib/actions/folder.actions';
+import { Pagination } from '@/components/Pagination';
 
 const getFileIcon = (fileType: string) => {
   if (fileType.startsWith('image/')) return Image;
@@ -62,6 +63,9 @@ export default function FilesPage() {
   const [folders, setFolders] = useState<FolderDocument[]>([]);
   const [filteredFiles, setFilteredFiles] = useState<FileDocument[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalFiles, setTotalFiles] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -80,7 +84,7 @@ export default function FilesPage() {
   const [isSelecting, setIsSelecting] = useState(false);
   const [showBulkMove, setShowBulkMove] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = async (page = currentPage, size = pageSize) => {
     try {
       const currentUser = await getCurrentUser();
       if (!currentUser) {
@@ -93,10 +97,25 @@ export default function FilesPage() {
       const userFolders = await getFolders(currentFolderId);
       setFolders(userFolders);
       
-      // Fetch files for current folder (or root if no folder selected)
-      const userFiles = await getFiles(currentFolderId === null ? null : currentFolderId);
-      setFiles(userFiles);
-      setFilteredFiles(userFiles);
+      // Fetch files for current folder with pagination
+      const response = await getFiles({
+        folderId: currentFolderId === null ? null : currentFolderId,
+        limit: size,
+        offset: (page - 1) * size,
+        orderBy: 'createdAt',
+        orderDirection: 'desc'
+      });
+      
+      // Handle both response types (for backward compatibility)
+      if (Array.isArray(response)) {
+        setFiles(response);
+        setFilteredFiles(response);
+        setTotalFiles(response.length);
+      } else {
+        setFiles(response.files);
+        setFilteredFiles(response.files);
+        setTotalFiles(response.total);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       router.push('/sign-in');
@@ -106,8 +125,13 @@ export default function FilesPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    setCurrentPage(1);
+    fetchData(1, pageSize);
   }, [currentFolderId]);
+
+  useEffect(() => {
+    fetchData(currentPage, pageSize);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     let filtered = files;
@@ -154,7 +178,7 @@ export default function FilesPage() {
 
     try {
       await deleteFile(file.$id, file.bucketFileId);
-      await fetchData();
+      await fetchData(currentPage, pageSize);
     } catch (error) {
       console.error('Delete error:', error);
     }
@@ -191,7 +215,7 @@ export default function FilesPage() {
       );
       setSelectedFiles(new Set());
       setIsSelecting(false);
-      await fetchData();
+      await fetchData(currentPage, pageSize);
     } catch (error) {
       console.error('Bulk delete error:', error);
     }
@@ -359,13 +383,13 @@ export default function FilesPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Folders */}
             {folders.map((folder) => (
               <FolderCard
                 key={folder.$id}
                 folder={folder}
-                onRefresh={fetchData}
+                onRefresh={() => fetchData(currentPage, pageSize)}
                 onRename={(folder) => {
                   setFolderToRename(folder);
                   setShowRenameFolderDialog(true);
@@ -497,7 +521,7 @@ export default function FilesPage() {
         onClose={() => setShowUpload(false)}
         onUploadComplete={() => {
           setShowUpload(false);
-          fetchData();
+          fetchData(currentPage, pageSize);
         }}
         folderId={currentFolderId}
       />
@@ -508,7 +532,7 @@ export default function FilesPage() {
         onClose={() => setShowCreateFolder(false)}
         onSuccess={() => {
           setShowCreateFolder(false);
-          fetchData();
+          fetchData(currentPage, pageSize);
         }}
         parentId={currentFolderId}
       />
@@ -534,7 +558,7 @@ export default function FilesPage() {
             setFileToTag(null);
           }}
           file={fileToTag}
-          onSuccess={fetchData}
+          onSuccess={() => fetchData(currentPage, pageSize)}
         />
       )}
 
@@ -559,7 +583,7 @@ export default function FilesPage() {
             setFolderToRename(null);
           }}
           folder={folderToRename}
-          onSuccess={fetchData}
+          onSuccess={() => fetchData(currentPage, pageSize)}
         />
       )}
 
@@ -587,9 +611,33 @@ export default function FilesPage() {
           setShowBulkMove(false);
           setSelectedFiles(new Set());
           setIsSelecting(false);
-          fetchData();
+          fetchData(currentPage, pageSize);
         }}
       />
+
+      {/* Pagination */}
+      {totalFiles > 0 && (
+        <div className="mt-8 pb-8">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalFiles / pageSize)}
+            pageSize={pageSize}
+            totalItems={totalFiles}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+              setSelectedFiles(new Set());
+              setIsSelecting(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+              setSelectedFiles(new Set());
+              setIsSelecting(false);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

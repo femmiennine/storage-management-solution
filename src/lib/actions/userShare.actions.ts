@@ -78,7 +78,7 @@ export async function shareFileWithUser({
         }
       );
       
-      return share as UserShareDocument;
+      return share as unknown as UserShareDocument;
     }
 
     // Create new share
@@ -108,7 +108,7 @@ export async function shareFileWithUser({
       }
     });
 
-    return share as UserShareDocument;
+    return share as unknown as UserShareDocument;
   } catch (error) {
     console.error('Share file with user error:', error);
     throw error;
@@ -177,7 +177,7 @@ export async function getFileShares(fileId: string) {
       ]
     );
 
-    return shares.documents as UserShareDocument[];
+    return shares.documents as unknown as UserShareDocument[];
   } catch (error) {
     console.error('Get file shares error:', error);
     throw error;

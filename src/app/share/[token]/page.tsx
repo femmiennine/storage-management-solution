@@ -255,19 +255,6 @@ export default function SharePage() {
               </div>
             </div>
 
-            {/* Share Stats */}
-            <div className="mt-6 pt-6 border-t flex gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                <span>{shareLink.views} views</span>
-              </div>
-              {canDownload && (
-                <div className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  <span>{shareLink.downloads} downloads</span>
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
 

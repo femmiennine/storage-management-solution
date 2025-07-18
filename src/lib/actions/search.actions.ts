@@ -69,7 +69,7 @@ export async function searchFiles(
       queries
     );
 
-    let results = files.documents as FileDocument[];
+    let results = files.documents as unknown as FileDocument[];
 
     // Filter by tags if specified
     if (filters.tags && filters.tags.length > 0) {
@@ -107,7 +107,7 @@ export async function searchFolders(searchQuery: string): Promise<FolderDocument
       queries
     );
 
-    return folders.documents as FolderDocument[];
+    return folders.documents as unknown as FolderDocument[];
   } catch (error) {
     console.error('Search folders error:', error);
     throw error;

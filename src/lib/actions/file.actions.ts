@@ -92,14 +92,90 @@ export async function getFile(fileId: string) {
       fileId
     );
 
-    return file as FileDocument;
+    return file as unknown as FileDocument;
   } catch (error) {
     console.error('Get file error:', error);
     throw error;
   }
 }
 
-export async function getFiles(folderId?: string | null) {
+export interface GetFilesParams {
+  folderId?: string | null;
+  limit?: number;
+  offset?: number;
+  orderBy?: 'createdAt' | 'name' | 'size';
+  orderDirection?: 'asc' | 'desc';
+}
+
+export interface GetFilesResponse {
+  files: FileDocument[];
+  total: number;
+  hasMore: boolean;
+}
+
+export async function getFiles(params?: GetFilesParams | string | null): Promise<GetFilesResponse | FileDocument[]> {
+  // Handle backward compatibility
+  if (typeof params === 'string' || params === null || params === undefined) {
+    const result = await getFilesLegacy(params);
+    return result;
+  }
+
+  const {
+    folderId,
+    limit = 20,
+    offset = 0,
+    orderBy = 'createdAt',
+    orderDirection = 'desc'
+  } = params;
+
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const queries = [
+      Query.equal('userId', user.$id),
+      Query.limit(limit),
+      Query.offset(offset),
+    ];
+
+    // If folderId is provided, filter by it
+    // If folderId is null, get root files (no folder)
+    // If folderId is undefined, get all files
+    if (folderId !== undefined) {
+      if (folderId === null) {
+        queries.push(Query.isNull('folderId'));
+      } else {
+        queries.push(Query.equal('folderId', folderId));
+      }
+    }
+
+    // Add ordering
+    const orderField = orderBy === 'createdAt' ? '$createdAt' : orderBy === 'name' ? 'fileName' : 'fileSize';
+    if (orderDirection === 'desc') {
+      queries.push(Query.orderDesc(orderField));
+    } else {
+      queries.push(Query.orderAsc(orderField));
+    }
+
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      queries
+    );
+
+    return {
+      files: response.documents as unknown as FileDocument[],
+      total: response.total,
+      hasMore: offset + limit < response.total
+    };
+  } catch (error) {
+    console.error('Get files error:', error);
+    throw error;
+  }
+}
+
+// Legacy function for backward compatibility
+async function getFilesLegacy(folderId?: string | null): Promise<FileDocument[]> {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('User not authenticated');
@@ -108,9 +184,6 @@ export async function getFiles(folderId?: string | null) {
       Query.equal('userId', user.$id),
     ];
 
-    // If folderId is provided, filter by it
-    // If folderId is null, get root files (no folder)
-    // If folderId is undefined, get all files
     if (folderId !== undefined) {
       if (folderId === null) {
         queries.push(Query.isNull('folderId'));
@@ -125,7 +198,7 @@ export async function getFiles(folderId?: string | null) {
       queries
     );
 
-    return files.documents as FileDocument[];
+    return files.documents as unknown as FileDocument[];
   } catch (error) {
     console.error('Get files error:', error);
     throw error;
@@ -139,7 +212,7 @@ export async function deleteFile(fileId: string, bucketFileId: string) {
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
       fileId
-    ) as FileDocument;
+    ) as unknown as FileDocument;
 
     // Delete from storage
     await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
@@ -207,7 +280,7 @@ export async function moveFile(fileId: string, newFolderId: string | null) {
       { folderId: newFolderId }
     );
 
-    return updatedFile as FileDocument;
+    return updatedFile as unknown as FileDocument;
   } catch (error) {
     console.error('Move file error:', error);
     throw error;

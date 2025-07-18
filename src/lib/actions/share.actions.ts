@@ -140,7 +140,7 @@ export async function createShareLink({
     }
 
     // Return the document
-    return shareLink as ShareLinkDocument;
+    return shareLink as unknown as ShareLinkDocument;
   } catch (error: any) {
     console.error('Create share link error:', error);
     if (error.message) {
@@ -162,7 +162,7 @@ export async function getShareLink(token: string): Promise<ShareLinkWithFile | n
       return null;
     }
 
-    const shareLink = links.documents[0] as ShareLinkDocument;
+    const shareLink = links.documents[0] as unknown as ShareLinkDocument;
 
     // Check expiration
     if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
@@ -284,7 +284,7 @@ export async function getShareLinks(fileId?: string) {
       })
     );
 
-    return linksWithFiles as ShareLinkWithFile[];
+    return linksWithFiles as unknown as ShareLinkWithFile[];
   } catch (error) {
     console.error('Get share links error:', error);
     throw error;

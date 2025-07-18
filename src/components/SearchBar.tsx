@@ -112,7 +112,7 @@ export function SearchBar({
     filters.types.length + 
     (filters.dateRange ? 1 : 0) + 
     (filters.sizeRange ? 1 : 0) + 
-    filters.folders.length +
+    (filters.folders?.length || 0) +
     (filters.tags?.length || 0);
 
   return (

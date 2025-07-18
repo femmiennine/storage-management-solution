@@ -67,7 +67,7 @@ export async function logActivity({
       }
     );
 
-    return activity as ActivityDocument;
+    return activity as unknown as ActivityDocument;
   } catch (error) {
     console.error('Log activity error:', error);
     // Don't throw - we don't want activity logging failures to break the app
@@ -103,7 +103,7 @@ export async function getActivities(
     );
 
     return {
-      activities: activities.documents as ActivityDocument[],
+      activities: activities.documents as unknown as ActivityDocument[],
       total: activities.total
     };
   } catch (error) {
@@ -128,7 +128,7 @@ export async function getResourceActivities(
       ]
     );
 
-    return activities.documents as ActivityDocument[];
+    return activities.documents as unknown as ActivityDocument[];
   } catch (error) {
     console.error('Get resource activities error:', error);
     throw error;
@@ -154,7 +154,7 @@ export async function getRecentActivities(hours: number = 24) {
       ]
     );
 
-    return activities.documents as ActivityDocument[];
+    return activities.documents as unknown as ActivityDocument[];
   } catch (error) {
     console.error('Get recent activities error:', error);
     throw error;

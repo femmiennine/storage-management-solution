@@ -20,6 +20,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FolderTree } from '@/components/FolderTree';
 import { logoutUser } from '@/lib/actions/user.actions';
+import { Logo } from '@/components/Logo';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Footer } from '@/components/Footer';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -62,8 +65,8 @@ export default function RootLayout({
           >
             {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
-          <h1 className="text-lg font-semibold">Storage Manager</h1>
-          <div className="w-10" />
+          <Logo showText={false} />
+          <ThemeToggle />
         </div>
       </div>
 
@@ -73,8 +76,9 @@ export default function RootLayout({
       }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b">
-            <h1 className="text-2xl font-bold">Storage Manager</h1>
+          <div className="p-6 border-b flex items-center justify-between">
+            <Logo />
+            <ThemeToggle />
           </div>
 
           {/* Search */}
@@ -141,10 +145,11 @@ export default function RootLayout({
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        <main className="pt-16 lg:pt-0">
+      <div className="lg:pl-64 min-h-screen flex flex-col">
+        <main className="pt-16 lg:pt-0 flex-1">
           {children}
         </main>
+        <Footer />
       </div>
 
       {/* Mobile sidebar overlay */}

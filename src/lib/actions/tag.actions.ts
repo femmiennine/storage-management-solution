@@ -77,7 +77,7 @@ export async function removeTagsFromFile(fileId: string, tagsToRemove: string[])
     const existingTags = file.tags ? file.tags.split(',').filter(Boolean) : [];
     
     // Remove specified tags
-    const remainingTags = existingTags.filter(tag => !tagsToRemove.includes(tag));
+    const remainingTags = existingTags.filter((tag: string) => !tagsToRemove.includes(tag));
     
     // Update file with remaining tags
     const updatedFile = await databases.updateDocument(
@@ -113,7 +113,7 @@ export async function getUserTags(): Promise<Tag[]> {
     files.documents.forEach(file => {
       if (file.tags) {
         const tags = file.tags.split(',').filter(Boolean);
-        tags.forEach(tag => {
+        tags.forEach((tag: string) => {
           tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
         });
       }
