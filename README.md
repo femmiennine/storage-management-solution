@@ -5,12 +5,14 @@ A modern, full-stack file storage and management platform built with Next.js and
 ## ✨ Features
 
 ### 🔐 Authentication System
+
 - User registration and login
 - Secure session management
 - Protected routes with middleware
 - Avatar generation using Appwrite's avatar service
 
 ### 📁 File Management
+
 - **Multiple file type support**: Documents, images, videos, audio files
 - **Drag & drop upload** with visual feedback
 - **Progress tracking** during uploads
@@ -18,12 +20,14 @@ A modern, full-stack file storage and management platform built with Next.js and
 - **File deletion** capabilities
 
 ### 📊 Storage Analytics
+
 - **Storage usage tracking** with visual progress
 - **File type categorization** (documents, images, videos)
 - **Storage quota management** (10GB limit)
 - **Recent uploads display**
 
 ### 🎨 User Interface
+
 - **Responsive design** for all device sizes
 - **Modern UI components** with consistent styling
 - **Dark/light mode support** (infrastructure ready)
@@ -32,6 +36,7 @@ A modern, full-stack file storage and management platform built with Next.js and
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **Next.js 15** - React framework with App Router
 - **React 19** - Latest version for UI components
 - **TypeScript** - Type-safe development
@@ -40,6 +45,7 @@ A modern, full-stack file storage and management platform built with Next.js and
 - **Lucide React** - Icon library
 
 ### Backend & Database
+
 - **Appwrite** - Backend-as-a-Service platform providing:
   - User authentication and account management
   - Database services for file metadata
@@ -47,11 +53,13 @@ A modern, full-stack file storage and management platform built with Next.js and
   - Real-time capabilities
 
 ### Form Handling & Validation
+
 - **React Hook Form** - Efficient form management
 - **Zod** - Schema validation
 - **@hookform/resolvers** - Form validation integration
 
 ### UI Components
+
 - **Radix UI** - Accessible component primitives
 - **Class Variance Authority** - Component variant management
 - **Tailwind Merge** - Tailwind class merging utility
@@ -98,12 +106,14 @@ storage-management-solution/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd storage-management-solution
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    # or
@@ -111,11 +121,13 @@ storage-management-solution/
    ```
 
 3. **Environment Setup**
+
    ```bash
    cp .env.local.example .env.local
    ```
-   
+
    Configure your environment variables:
+
    ```env
    NEXT_PUBLIC_APPWRITE_ENDPOINT=your_appwrite_endpoint
    NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_project_id
@@ -124,6 +136,7 @@ storage-management-solution/
    ```
 
 4. **Run the development server**
+
    ```bash
    npm run dev
    # or
@@ -132,10 +145,12 @@ storage-management-solution/
 
 5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
+   Deployed to [https://storage-management-solution-murex.vercel.app/](https://storage-management-solution-murex.vercel.app/)
 
 ## 📱 Usage
 
 ### Getting Started
+
 1. **Sign Up**: Create a new account using the registration form
 2. **Sign In**: Access your dashboard with your credentials
 3. **Upload Files**: Use the drag-and-drop interface or click to select files
@@ -143,6 +158,7 @@ storage-management-solution/
 5. **Monitor Storage**: Track your usage and remaining storage space
 
 ### File Types Supported
+
 - **Documents**: PDF, DOC, DOCX, TXT, etc.
 - **Images**: JPG, PNG, GIF, SVG, etc.
 - **Videos**: MP4, AVI, MOV, etc.
@@ -151,6 +167,7 @@ storage-management-solution/
 ## 🔧 Configuration
 
 ### Appwrite Setup
+
 1. Create an Appwrite project
 2. Configure authentication (email/password)
 3. Set up a database for file metadata
@@ -158,6 +175,7 @@ storage-management-solution/
 5. Configure appropriate permissions
 
 ### Environment Variables
+
 - `NEXT_PUBLIC_APPWRITE_ENDPOINT`: Your Appwrite server URL
 - `NEXT_PUBLIC_APPWRITE_PROJECT_ID`: Your Appwrite project ID
 - `NEXT_PUBLIC_APPWRITE_DATABASE_ID`: Database ID for file metadata
@@ -185,6 +203,7 @@ npm run type-check
 ```
 
 ### Code Quality
+
 - **ESLint**: Configured for Next.js and TypeScript
 - **TypeScript**: Strict type checking enabled
 - **TailwindCSS**: Consistent styling approach
@@ -201,16 +220,19 @@ npm run type-check
 ## 📊 Architecture Highlights
 
 ### Route Protection
+
 - Uses Next.js middleware for authentication
 - Route groups `(auth)` and `(root)` for organized routing
 - Automatic redirects for unauthenticated users
 
 ### State Management
+
 - Client-side state with React hooks
 - Server actions for data fetching
 - Real-time updates after file operations
 
 ### File Handling
+
 - Secure file upload to Appwrite storage buckets
 - File metadata stored in Appwrite database
 - Preview generation for image files
@@ -239,10 +261,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 If you encounter any issues or have questions:
+
 1. Check the [Issues](../../issues) page
 2. Create a new issue with detailed information
 3. Provide steps to reproduce any bugs
 
 ---
+
+![Storease Landing Page](public/storeaselanding.png)
+![Storease Sign in](public/storeasesignin.png)
+![Storease Dashboard](public/storeasedahsboard.png)
+![Storease Drag and Drop Upload](public/storeasedragdropupload.png)
+![Storease My Files](public/storeasemyfiles.png)
+![Storease Share File](public/storeaseshare.png)
+![Storease Share Link](public/storeasesharelink.png)
+![Storease UserShare](public/storeaseusershare.png)
+![Storease Light Mode](public/storeaselightmode.png)
 
 **Built with ❤️ using Next.js and Appwrite**
