@@ -51,21 +51,6 @@ export function AuthForm({ type }: AuthFormProps) {
     },
   });
 
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        if (user) {
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        // User not logged in, continue
-      }
-    };
-    checkUser();
-  }, [router]);
-
   async function onSubmit(data: FormData) {
     setIsLoading(true);
     setError('');
@@ -86,6 +71,7 @@ export function AuthForm({ type }: AuthFormProps) {
       
       router.push('/dashboard');
     } catch (error: any) {
+      console.error('Auth error:', error);
       setError(error.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);

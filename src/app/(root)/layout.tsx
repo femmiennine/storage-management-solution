@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Permission } from '@/types/roles';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -35,7 +37,7 @@ const navItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function RootLayout({
+function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -160,5 +162,20 @@ export default function RootLayout({
         />
       )}
     </div>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ProtectedRoute 
+      requiredPermissions={[Permission.VIEW_FILES]}
+      fallbackUrl="/sign-in"
+    >
+      <DashboardLayout>{children}</DashboardLayout>
+    </ProtectedRoute>
   );
 }
