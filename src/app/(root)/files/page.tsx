@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   FileText, 
@@ -53,7 +53,7 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-export default function FilesPage() {
+function FilesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentFolderId = searchParams.get('folderId');
@@ -639,5 +639,13 @@ export default function FilesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function FilesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background p-6"><div className="max-w-7xl mx-auto space-y-8"><div className="text-center"><h1 className="text-3xl font-bold">Loading...</h1></div></div></div>}>
+      <FilesContent />
+    </Suspense>
   );
 }

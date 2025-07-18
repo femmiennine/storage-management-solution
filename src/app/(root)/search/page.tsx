@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search as SearchIcon, FileText, FolderOpen } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { FileDocument } from '@/lib/actions/file.actions';
 import { FolderDocument } from '@/lib/actions/folder.actions';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   
@@ -230,6 +230,14 @@ export default function SearchPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background p-6"><div className="max-w-4xl mx-auto space-y-8"><div className="text-center space-y-4"><h1 className="text-4xl font-bold">Loading...</h1></div></div></div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
 
