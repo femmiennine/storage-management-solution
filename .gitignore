@@ -32,11 +32,9 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude
-/.claude
-.claude
+# claude development files
+.claude/
 CLAUDE.md
-/.claude/settings.local.json
 settings.local.json
 
 # typescript
