@@ -382,3 +382,7 @@ For support and questions:
 
 ![Storease Landing Page](public/storeaselanding.png)
 ![Storease Dashboard](public/storeasedahsboard.png)
+![Storease Dashboard](public/storeasemyfiles.png)
+![Storease Dashboard](public/storeaseshare.png)
+![Storease Dashboard](public/storeasesharelink.png)
+![Storease Dashboard](public/storeaseusershare.png)
