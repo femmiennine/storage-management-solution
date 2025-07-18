@@ -34,7 +34,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const fetchUser = async () => {
     try {
       const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      if (currentUser) {
+        // Map the Appwrite document to our User type
+        setUser({
+          $id: currentUser.$id,
+          email: currentUser.email,
+          name: currentUser.fullName || currentUser.name,
+          prefs: {
+            avatar: currentUser.avatar,
+            role: currentUser.role || UserRole.USER
+          }
+        });
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       setUser(null);
     } finally {
