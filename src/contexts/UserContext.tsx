@@ -34,9 +34,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const fetchUser = async () => {
     try {
       const currentUser = await getCurrentUser();
+      
       if (currentUser) {
         // Map the Appwrite document to our User type
-        setUser({
+        const userData = {
           $id: currentUser.$id,
           email: currentUser.email,
           name: currentUser.fullName || currentUser.name,
@@ -44,7 +45,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
             avatar: currentUser.avatar,
             role: currentUser.role || UserRole.USER
           }
-        });
+        };
+        setUser(userData);
       } else {
         setUser(null);
       }

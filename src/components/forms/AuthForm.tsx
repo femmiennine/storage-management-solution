@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createAccount, loginUser, getCurrentUser } from '@/lib/actions/user.actions';
+import { useUser } from '@/contexts/UserContext';
 
 const authFormSchema = (type: 'sign-in' | 'sign-up') => {
   return z.object({
@@ -36,6 +37,7 @@ interface AuthFormProps {
 
 export function AuthForm({ type }: AuthFormProps) {
   const router = useRouter();
+  const { refreshUser } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -69,9 +71,14 @@ export function AuthForm({ type }: AuthFormProps) {
         });
       }
       
+      // Refresh the user context to pick up the new session
+      await refreshUser();
+      
+      // Add a small delay to ensure session is properly set
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Auth error:', error);
       setError(error.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
